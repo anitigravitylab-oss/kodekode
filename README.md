@@ -1,86 +1,87 @@
 # KodeKode
 
-遊びで作った Claude Code クローンです。**全然だめ**ですが、自分用に動けばよしの精神で作っています。バグ多数・未完成・気まぐれに壊れます。実用は推奨しません。
+A toy Claude Code clone I built for fun. **It's not good.** Built with the "works on my machine, ship it" mentality. Lots of bugs, unfinished features, breaks randomly. Not recommended for actual use.
 
-TypeScript + React + [Ink](https://github.com/vadimdemedes/ink) + [Bun](https://bun.com) で動く TUI コーディングエージェント。複数の LLM プロバイダーを切り替えながら、ローカルマシン上でファイル編集・bash 実行・web 検索などをやらせて使います。
+A TUI coding agent in TypeScript + React + [Ink](https://github.com/vadimdemedes/ink) + [Bun](https://bun.com). Switch between multiple LLM providers and let them edit files, run bash, search the web, etc. on your local machine.
 
-## 何ができる（やる）
+## What it can (try to) do
 
-- マルチプロバイダー対応: Claude（Anthropic）/ DeepSeek / OpenAI（API + OAuth 経由）/ Gemini
-- ツール: `bash` / `read_file` / `write_file` / `edit_file` / `glob` / `grep` / `web_fetch` / `web_search` / `todo_write` / `task`（サブエージェント）/ バックグラウンドシェル
-- ストリーミング応答、思考ブロック表示、Markdown レンダリング
-- セッション保存・復元、`/compact` で会話圧縮
-- ツール実行許可システム（`/yolo` で無効化）、Plan モード（`/plan`）
-- カスタムスラッシュコマンド（`~/.kodekode/commands/*.md`）
-- CLAUDE.md 自動ロード
-- プロンプトキャッシング（Anthropic のみ）
-- 各 API のタイムアウト・自動リトライ・連続失敗時のヒント挿入
+- **Multi-provider**: Claude (Anthropic) / DeepSeek / OpenAI (API + OAuth proxy) / Gemini
+- **Tools**: `bash` / `read_file` / `write_file` / `edit_file` / `glob` / `grep` / `web_fetch` / `web_search` / `todo_write` / `task` (sub-agent) / background shells
+- Streaming responses, thinking-block display, Markdown rendering
+- Session save/restore, `/compact` for conversation summarization
+- Tool permission system (`/yolo` to disable), Plan mode (`/plan`)
+- Custom slash commands (`~/.kodekode/commands/*.md`)
+- Auto-load `CLAUDE.md` from project tree
+- Prompt caching (Anthropic only)
+- Per-API timeout, auto-retry, recovery hints on consecutive failures
 
-## 動作確認モデル
+## Supported models
 
 - `claude-opus-4-7`, `claude-sonnet-4-6`, `claude-haiku-4-5`
 - `deepseek-v4-pro`, `deepseek-v4-flash`
-- `gpt-5.5`, `gpt-5.4`, `gpt-5.4-mini`（OAuth 経由は `npx openai-oauth` プロキシ必要）
+- `gpt-5.5`, `gpt-5.4`, `gpt-5.4-mini` (OAuth route needs `npx openai-oauth` proxy)
 - `gemini-3.5-flash`, `gemini-3.1-pro-preview`, `gemini-3.1-flash-lite`
 
-## インストール
+## Install
 
 ```bash
 git clone https://github.com/anitigravitylab-oss/kodekode.git
 cd kodekode
 bun install
 chmod +x index.tsx
-# 必要なら PATH に通す:
+# Optional: put it on your PATH
 sudo ln -s "$(pwd)/index.tsx" /usr/local/bin/kodekode
 ```
 
-## 起動
+## Run
 
 ```bash
-kodekode      # シンボリックリンクした場合
-# もしくは
+kodekode      # if you symlinked
+# or
 bun run index.tsx
 ```
 
-初回起動時にプロバイダーと API キーを聞かれます。設定は `~/.kodekode/config.json` に保存されます。
+On first launch you'll be asked for a provider and API key. Settings are saved to `~/.kodekode/config.json`.
 
-## スラッシュコマンド
+## Slash commands
 
 ```
-/help            コマンド一覧
-/model           モデルを切り替え
-/clear           会話履歴をリセット
-/compact         会話を要約して圧縮
-/resume          過去のセッションを復元
-/plan            プランモードをトグル
-/yolo            ツール許可確認をスキップ
-/cost            累計トークン使用量とコスト推定
-/diff            このセッションで変更されたファイルの diff
-/init            CLAUDE.md を生成
-/exit            終了
+/help            list commands
+/model           switch model
+/clear           reset conversation
+/compact         summarize & shrink the conversation
+/resume          restore a past session
+/plan            toggle plan mode
+/yolo            skip tool permission prompts
+/cost            cumulative token usage + cost estimate
+/diff            diff of files changed this session
+/init            generate a CLAUDE.md for the current dir
+/exit            quit
 ```
 
-入力欄の特殊機能:
-- `\` 行末で改行（複数行入力）
-- `@filename` で Tab 補完
-- 行頭 `!` でシェル直接実行
-- 行頭 `#` でメモ（`~/.kodekode/notes.md` に追記）
+Input box specials:
 
-## 既知のだめなところ
+- Trailing `\` for newline (multi-line input)
+- `@filename` with Tab completion
+- Lines starting with `!` run as a shell command directly
+- Lines starting with `#` append a note to `~/.kodekode/notes.md`
 
-- OpenAI OAuth (`npx openai-oauth`) が時々ハング（プロキシの問題）
-- Gemini で複数 functionCall を返したとき不安定な時がある
-- Plan モードの UI が雑
-- Markdown レンダリングが Ink のレイアウトと喧嘩することがある
-- 全般的に大きな入力やエッジケースで落ちる
-- テストない
-- ドキュメントない
-- だめ
+## Known badness
 
-## なぜ作ったか
+- OpenAI OAuth (`npx openai-oauth`) sometimes hangs (proxy quirks)
+- Gemini gets flaky when returning multiple functionCalls in one turn
+- Plan mode UI is rough
+- Markdown rendering occasionally fights with Ink's layout
+- Crashes on large inputs and edge cases in general
+- No tests
+- No docs
+- Not good
 
-Claude Code（[claude.com/claude-code](https://claude.com/claude-code)）を実際に使っていて、自分でも同じようなのを書いてみたくなって遊びで作りました。Claude Code の方がはるかに完成度が高いので、本気で使うならそっちです。これは勉強と趣味のためのおもちゃ。
+## Why I built this
 
-## ライセンス
+I use [Claude Code](https://claude.com/claude-code) daily and wanted to try writing something similar myself. Claude Code is vastly more polished — if you actually want to use a tool like this, use Claude Code. This is a toy for learning and tinkering.
+
+## License
 
 MIT
